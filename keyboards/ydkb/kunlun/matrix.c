@@ -5,9 +5,19 @@
 #include "util.h"
 #include "timer.h"
 #include "matrix.h"
-#include "switch_board.h"
 #include "rgblight.h"
 #include "debounce.h"
+
+/***************
+ * Macros
+ */
+#define SERIAL_DATA_CLOCK_PULSE() \
+    do { \
+        PORTB |= (1<<PB1); \
+        asm("nop"); \
+        PORTB &= ~(1<<PB1); \
+    } while(0)
+
 
 /***************
  * Matrix scanning definitions
@@ -21,7 +31,7 @@ static bool scan_is_key_pressed( kunlun_pcb_t pcb );
 static void scan_setup_first_col( void );
 static void scan_setup_next_col( void );
 
-// Matrix state buffer (1:pressed, 0:released)
+// Matrix debounced state buffer (1:pressed, 0:released)
 static matrix_row_t matrix[MATRIX_ROWS] = {0};
 
 /***************
@@ -174,8 +184,8 @@ static void scan_setup_first_col( void )
     // PB3 | serial data = output, low
     //
     // Setup time is not specified in the data sheet, but with a max clock of 
-    // 30 MHz (cycle time of 33 ns) and a single nop is about 150 us, this should 
-    // have enough margin.
+    // 30 MHz (33 ns) and a single nop is about 150 us, this should have
+    // enough margin.
     DDRB |= (1<<PB3);
     PORTB &= ~(1<<PB3);
     asm("nop");
@@ -190,7 +200,7 @@ static void scan_setup_first_col( void )
     PORTB |= (1<<PB3);
 
     // PB3 = input (and pull-up enabled by previous line)
-    // This prepares the line for reading the key state on the left PCB
+    // This prepares the line for reading the key state on the left PCB.
     DDRB &= ~(1<<PB3);
 }
 
@@ -200,11 +210,21 @@ static void scan_setup_first_col( void )
  */
 static void scan_setup_next_col( void )
 {
+    // PORTB bit for PB3 is already set to 1 once the scan has started, so
+    // there is no need to set it again here.
+
+    // Why not keep PB3 as an input with pull-up? If the wrong key is pressed,
+    // the shift register output will pull PB3 low and we will clock in the 
+    // wrong bit. The reason why driving it high works is that even with the 
+    // wrong key pressed (which would happen if you hold down anything on the 
+    // left PCB for even the shortest duration) is that the resistor on the left
+    // PCB will prevent a tug-of-war.
+
     // PB3 | serial data = output, high
     DDRB |= (1<<PB3);
 
     SERIAL_DATA_CLOCK_PULSE();
 
-    // PB3 = input (and pull-up enabled previously)
+    // PB3 = input, pull-up
     DDRB &= ~(1<<PB3);
 }
