@@ -1,24 +1,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <avr/io.h>
-#include "wait.h"
-#include "action_layer.h"
 #include "print.h"
-#include "debug.h"
 #include "util.h"
 #include "timer.h"
 #include "matrix.h"
 #include "switch_board.h"
 #include "rgblight.h"
-
-/***************
- * Debouncing definitions
- */
-#define DEBOUNCE_DN_MASK (uint8_t)(~(0x80 >> 5))
-#define DEBOUNCE_UP_MASK (uint8_t)(0x80 >> 5)
-
-static uint16_t matrix_scan_timestamp = 0;
-static uint8_t matrix_debouncing[MATRIX_ROWS][MATRIX_COLS] = {0};
+#include "debounce.h"
 
 /***************
  * Matrix scanning definitions
@@ -32,7 +21,7 @@ static uint8_t scan_get_key_pressed( kunlun_pcb_t pcb );
 static void scan_setup_first_col( void );
 static void scan_setup_next_col( void );
 
-// Matrix state buffer (1:on, 0:off)
+// Matrix state buffer (1:pressed, 0:released)
 static matrix_row_t matrix[MATRIX_ROWS] = {0};
 
 /***************
@@ -83,6 +72,8 @@ void matrix_init(void)
     PORTB |=  (1<<PB3 | 1<<PB2 | 1<<PB1);
 
     rgblight_init();
+
+    debounce_init( MATRIX_ROWS );
 }
 
 /*
@@ -95,45 +86,47 @@ void matrix_init(void)
  */
 uint8_t matrix_scan(void)
 {
-    // [TODO] use standard debouncing?
+    static matrix_row_t matrix_raw[MATRIX_ROWS] = {0};
+    
+    static uint16_t matrix_scan_timestamp = 0;
+
+    bool changed = false;
 
     uint16_t time_check = timer_read();
     if (matrix_scan_timestamp == time_check) return 1;
     matrix_scan_timestamp = time_check;
 
     scan_setup_first_col();
-    uint8_t *debounce = &matrix_debouncing[0][0];
+
     for (uint8_t row=0; row<MATRIX_ROWS; row++) {
-        for (uint8_t col=0; col<MATRIX_COLS; col++, *debounce++) {
+        matrix_row_t row_raw = 0;
+
+        for (uint8_t col=0; col<MATRIX_COLS; col++) {
             uint8_t real_col = col/2;
             if (col & 1) real_col += 8;
 
-            uint8_t key = 0;
             if( scan_get_key_pressed(real_col < 8 ? KUNLUN_PCB_LEFT : KUNLUN_PCB_RIGHT) )
             {
-                key = 0x80;
+                row_raw |= (1 << real_col);
             }
 
-            if (real_col >= 8) scan_setup_next_col();
+            if (real_col >= 8)
+                scan_setup_next_col();
+        }
 
-            *debounce = (*debounce >> 1) | key;
-            if ((*debounce > 0) && (*debounce < 255)) {
-                matrix_row_t *p_row = &matrix[row];
-                matrix_row_t col_mask = ((matrix_row_t)1 << real_col);
-                if        (*debounce >= DEBOUNCE_DN_MASK) {
-                    *p_row |=  col_mask;
-                } else if (*debounce <= DEBOUNCE_UP_MASK) {
-                    *p_row &= ~col_mask;
-                }
-            } 
+        if( matrix_raw[row] != row_raw )
+        {
+            matrix_raw[row] = row_raw;
+            changed = true;
         }
     }
+
+    debounce( matrix_raw, matrix, MATRIX_ROWS, changed );
     
     // Must call matrix_scan_kb to ensure QMK execution order compliance
     matrix_scan_kb();
 
-    // Return value doesn't mean anything
-    return 1;
+    return changed;
 }
 
 /***************
