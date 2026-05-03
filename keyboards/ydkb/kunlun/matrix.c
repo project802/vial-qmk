@@ -11,17 +11,7 @@
 #include "switch_board.h"
 #include "rgblight.h"
 
-typedef enum {
-    KUNLUN_PCB_LEFT = 0,
-    KUNLUN_PCB_RIGHT = 1,
-} kunlun_pcb_t;
-
-/*
- * Matrix state buffer (1:on, 0:off)
- */
-static matrix_row_t matrix[MATRIX_ROWS] = {0};
-
-/*
+/***************
  * Debouncing definitions
  */
 #define DEBOUNCE_DN_MASK (uint8_t)(~(0x80 >> 5))
@@ -30,14 +20,22 @@ static matrix_row_t matrix[MATRIX_ROWS] = {0};
 static uint16_t matrix_scan_timestamp = 0;
 static uint8_t matrix_debouncing[MATRIX_ROWS][MATRIX_COLS] = {0};
 
-/*
- * Matrix scanning support functions
+/***************
+ * Matrix scanning definitions
  */
+typedef enum {
+    KUNLUN_PCB_LEFT = 0,
+    KUNLUN_PCB_RIGHT = 1,
+} kunlun_pcb_t;
+
 static uint8_t get_key(kunlun_pcb_t pcb);
 static void scan_setup_first_col( void );
 static void scan_setup_next_col( void );
 
-/*
+// Matrix state buffer (1:on, 0:off)
+static matrix_row_t matrix[MATRIX_ROWS] = {0};
+
+/***************
  * Required functions for custom matrix.
  * 
  * See https://docs.qmk.fm/custom_matrix#full-replacement
@@ -76,7 +74,7 @@ void matrix_init(void)
     /*
      * PB1 = serial data clock
      * PB2 = right PCB keypress input
-     * PB3 = serial data and left PCB keypress input
+     * PB3 = serial data output and left PCB keypress input
      */
 
     // Set PB1 and PB3 as output, PB2 as input with pull-up
@@ -134,10 +132,13 @@ uint8_t matrix_scan(void)
     return 1;
 }
 
-/*
- * Kunlun-specific functions to support matrix scanning.
+/***************
+ * Functions to support matrix scanning.
  */
 
+/*
+ * Read the current key state depending on which PCB is selected.
+ */
 static uint8_t get_key(kunlun_pcb_t pcb) {
     if (pcb == KUNLUN_PCB_LEFT)
     {
@@ -150,7 +151,7 @@ static uint8_t get_key(kunlun_pcb_t pcb) {
 }
 
 /*
- * Clock in the keypress test bit (a 0), which will then get shifted through the registers
+ * Clock in the keypress test bit (0), which will then get shifted through the registers
  * used to test the keys one-by-one.
  */
 static void scan_setup_first_col( void )
