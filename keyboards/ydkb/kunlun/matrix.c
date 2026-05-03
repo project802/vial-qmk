@@ -28,7 +28,7 @@ typedef enum {
     KUNLUN_PCB_RIGHT = 1,
 } kunlun_pcb_t;
 
-static uint8_t get_key(kunlun_pcb_t pcb);
+static uint8_t scan_get_key_pressed( kunlun_pcb_t pcb );
 static void scan_setup_first_col( void );
 static void scan_setup_next_col( void );
 
@@ -108,7 +108,11 @@ uint8_t matrix_scan(void)
             uint8_t real_col = col/2;
             if (col & 1) real_col += 8;
 
-            uint8_t key = get_key(real_col < 8 ? KUNLUN_PCB_LEFT : KUNLUN_PCB_RIGHT);
+            uint8_t key = 0;
+            if( scan_get_key_pressed(real_col < 8 ? KUNLUN_PCB_LEFT : KUNLUN_PCB_RIGHT) )
+            {
+                key = 0x80;
+            }
 
             if (real_col >= 8) scan_setup_next_col();
 
@@ -139,14 +143,14 @@ uint8_t matrix_scan(void)
 /*
  * Read the current key state depending on which PCB is selected.
  */
-static uint8_t get_key(kunlun_pcb_t pcb) {
+static uint8_t scan_get_key_pressed(kunlun_pcb_t pcb) {
     if (pcb == KUNLUN_PCB_LEFT)
     {
-        return PINB & (1<<PB3) ? 0 : 0x80;
+        return (PINB & (1<<PB3)) == 0;
     } 
     else
     {
-        return PINB & (1<<PB2) ? 0 : 0x80;
+        return (PINB & (1<<PB2)) == 0;
     }
 }
 
