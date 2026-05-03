@@ -11,18 +11,34 @@
 #include "switch_board.h"
 #include "rgblight.h"
 
+
+/*
+ * Matrix state buffer (1:on, 0:off)
+ */
+static matrix_row_t matrix[MATRIX_ROWS] = {0};
+
+/*
+ * Debouncing definitions
+ */
 #define DEBOUNCE_DN_MASK (uint8_t)(~(0x80 >> 5))
 #define DEBOUNCE_UP_MASK (uint8_t)(0x80 >> 5)
 
-static matrix_row_t matrix[MATRIX_ROWS] = {0};
-
 static uint16_t matrix_scan_timestamp = 0;
 static uint8_t matrix_debouncing[MATRIX_ROWS][MATRIX_COLS] = {0};
+
+/*
+ * Matrix scanning support functions
+ */
 static void select_next_key(uint8_t mode);
 static uint8_t get_key(uint8_t col);
-
 static void init_cols(void);
 
+
+/*
+ * Required functions for custom matrix.
+ * 
+ * See https://docs.qmk.fm/custom_matrix#full-replacement
+ */
 
 __attribute__((weak)) void matrix_init_kb(void) {
     matrix_init_user(); 
@@ -85,33 +101,23 @@ uint8_t matrix_scan(void)
                     *p_row &= ~col_mask;
                 }
             } 
-
         }
     }
     
+    // Must call matrix_scan_kb to ensure QMK execution order compliance
     matrix_scan_kb();
+
     return 1;
 }
+
+/*
+ * Kunlun-specific functions to support matrix scanning.
+ */
 
 static void get_key_ready(void) {
     DDRB  &= ~(1<<3);
     PORTB |=  (1<<3);
     _delay_us(5);
-}
-
-inline
-bool matrix_is_on(uint8_t row, uint8_t col)
-{
-    return (matrix[row] & ((matrix_row_t)1<<col));
-}
-
-uint8_t matrix_key_count(void)
-{
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < MATRIX_ROWS; i++) {
-        count += bitpop16(matrix[i]);
-    }
-    return count;
 }
 
 void init_cols(void)
@@ -122,16 +128,9 @@ void init_cols(void)
     PORTB |=  (1<<3 | 1<<2 | 1<<1);
 }
 
-
 static uint8_t get_key(uint8_t col) {
     if (col<8) return PINB&(1<<3) ? 0 : 0x80;
     else return PINB&(1<<2) ? 0 : 0x80;
-}
-
-
-
-void unselect_rows(void)
-{
 }
 
 static void select_next_key(uint8_t mode)
