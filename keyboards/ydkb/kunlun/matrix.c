@@ -11,7 +11,6 @@
 #include "switch_board.h"
 #include "rgblight.h"
 
-
 /*
  * Matrix state buffer (1:on, 0:off)
  */
@@ -31,7 +30,6 @@ static uint8_t matrix_debouncing[MATRIX_ROWS][MATRIX_COLS] = {0};
  */
 static void select_next_key(uint8_t mode);
 static uint8_t get_key(uint8_t col);
-static void init_cols(void);
 
 
 /*
@@ -70,10 +68,30 @@ void matrix_print(void)
 
 void matrix_init(void)
 {
-    init_cols();
+    
+    /*
+     * PB1 = serial data clock
+     * PB2 = right PCB keypress input
+     * PB3 = serial data and left PCB keypress input
+     */
+
+    // Set PB1 and PB3 as output, PB2 as input with pull-up
+    DDRB  |=  (1<<PB3 | 1<<PB1);
+    DDRB  &= ~(1<<PB2);
+    PORTB |=  (1<<PB3 | 1<<PB2 | 1<<PB1);
+
     rgblight_init();
 }
 
+/*
+ * Scans the matrix and updates the state.
+ *
+ * - Flush the shift registers with a series of clock pulses
+ * - Shift in a single 0 bit to the first register on both left and right PCBs
+ * - Iterate the columns within the rows in a loop:
+ *   - Even (and zero) columns read the left PCB (PB3 low = pressed)
+ *   - Odd columns read the right PCB (PB2 low = pressed) and then pulse the shift clock
+ */
 uint8_t matrix_scan(void)
 {
     // [TODO] use standard debouncing?
@@ -107,6 +125,7 @@ uint8_t matrix_scan(void)
     // Must call matrix_scan_kb to ensure QMK execution order compliance
     matrix_scan_kb();
 
+    // Return value doesn't mean anything
     return 1;
 }
 
@@ -114,28 +133,15 @@ uint8_t matrix_scan(void)
  * Kunlun-specific functions to support matrix scanning.
  */
 
-static void get_key_ready(void) {
-    DDRB  &= ~(1<<3);
-    PORTB |=  (1<<3);
-    _delay_us(5);
-}
-
-void init_cols(void)
-{
-    //595 pin
-    DDRB  |=  (1<<3 | 1<<1);
-    DDRB  &= ~(1<<2);
-    PORTB |=  (1<<3 | 1<<2 | 1<<1);
-}
-
 static uint8_t get_key(uint8_t col) {
-    if (col<8) return PINB&(1<<3) ? 0 : 0x80;
-    else return PINB&(1<<2) ? 0 : 0x80;
+    if (col<8) return PINB&(1<<PB3) ? 0 : 0x80;
+    else return PINB&(1<<PB2) ? 0 : 0x80;
 }
 
 static void select_next_key(uint8_t mode)
 {
-    DDRB |= (1<<3);
+    // PB3 = output
+    DDRB |= (1<<PB3);
     
     if (mode == 0) {
         DS_PL_HI();
@@ -148,6 +154,10 @@ static void select_next_key(uint8_t mode)
         DS_PL_HI();
         CLOCK_PULSE();
     }
-    get_key_ready();
+    
+    // PB3 = input with pull-up
+    DDRB  &= ~(1<<PB3);
+    PORTB |=  (1<<PB3);
+    _delay_us(5);
 }
 
