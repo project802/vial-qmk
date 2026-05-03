@@ -8,7 +8,7 @@
 #define DS_PL_HI()      (PORTB |=  (1<<PB3))
 #define DS_PL_LO()      (PORTB &= ~(1<<PB3))
 
-#define CLOCK_PULSE() \
+#define SERIAL_DATA_CLOCK_PULSE() \
     do { \
         PORTB |= (1<<PB1); \
         asm("nop"); \

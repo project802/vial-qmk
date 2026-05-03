@@ -11,6 +11,11 @@
 #include "switch_board.h"
 #include "rgblight.h"
 
+typedef enum {
+    KUNLUN_PCB_LEFT = 0,
+    KUNLUN_PCB_RIGHT = 1,
+} kunlun_pcb_t;
+
 /*
  * Matrix state buffer (1:on, 0:off)
  */
@@ -28,9 +33,9 @@ static uint8_t matrix_debouncing[MATRIX_ROWS][MATRIX_COLS] = {0};
 /*
  * Matrix scanning support functions
  */
-static void select_next_key(uint8_t mode);
-static uint8_t get_key(uint8_t col);
-
+static uint8_t get_key(kunlun_pcb_t pcb);
+static void scan_setup_first_col( void );
+static void scan_setup_next_col( void );
 
 /*
  * Required functions for custom matrix.
@@ -68,7 +73,6 @@ void matrix_print(void)
 
 void matrix_init(void)
 {
-    
     /*
      * PB1 = serial data clock
      * PB2 = right PCB keypress input
@@ -86,11 +90,10 @@ void matrix_init(void)
 /*
  * Scans the matrix and updates the state.
  *
- * - Flush the shift registers with a series of clock pulses
  * - Shift in a single 0 bit to the first register on both left and right PCBs
  * - Iterate the columns within the rows in a loop:
- *   - Even (and zero) columns read the left PCB (PB3 low = pressed)
- *   - Odd columns read the right PCB (PB2 low = pressed) and then pulse the shift clock
+ *   - Even (and zero) columns read the selected key on the left PCB (PB3 low = pressed)
+ *   - Odd columns read the selected key on the right PCB (PB2 low = pressed) and pulse the shift clock
  */
 uint8_t matrix_scan(void)
 {
@@ -100,15 +103,17 @@ uint8_t matrix_scan(void)
     if (matrix_scan_timestamp == time_check) return 1;
     matrix_scan_timestamp = time_check;
 
-    select_next_key(0);
+    scan_setup_first_col();
     uint8_t *debounce = &matrix_debouncing[0][0];
     for (uint8_t row=0; row<MATRIX_ROWS; row++) {
         for (uint8_t col=0; col<MATRIX_COLS; col++, *debounce++) {
             uint8_t real_col = col/2;
             if (col & 1) real_col += 8;
 
-            uint8_t key = get_key(real_col);
-            if (real_col >= 8) select_next_key(1);
+            uint8_t key = get_key(real_col < 8 ? KUNLUN_PCB_LEFT : KUNLUN_PCB_RIGHT);
+
+            if (real_col >= 8) scan_setup_next_col();
+
             *debounce = (*debounce >> 1) | key;
             if ((*debounce > 0) && (*debounce < 255)) {
                 matrix_row_t *p_row = &matrix[row];
@@ -133,31 +138,55 @@ uint8_t matrix_scan(void)
  * Kunlun-specific functions to support matrix scanning.
  */
 
-static uint8_t get_key(uint8_t col) {
-    if (col<8) return PINB&(1<<PB3) ? 0 : 0x80;
-    else return PINB&(1<<PB2) ? 0 : 0x80;
-}
-
-static void select_next_key(uint8_t mode)
-{
-    // PB3 = output
-    DDRB |= (1<<PB3);
-    
-    if (mode == 0) {
-        DS_PL_HI();
-        for (uint8_t i = 0; i < 40; i++) {
-            CLOCK_PULSE();
-        }
-        DS_PL_LO();
-        CLOCK_PULSE();
-    } else {
-        DS_PL_HI();
-        CLOCK_PULSE();
+static uint8_t get_key(kunlun_pcb_t pcb) {
+    if (pcb == KUNLUN_PCB_LEFT)
+    {
+        return PINB & (1<<PB3) ? 0 : 0x80;
+    } 
+    else
+    {
+        return PINB & (1<<PB2) ? 0 : 0x80;
     }
-    
-    // PB3 = input with pull-up
-    DDRB  &= ~(1<<PB3);
-    PORTB |=  (1<<PB3);
-    _delay_us(5);
 }
 
+/*
+ * Clock in the keypress test bit (a 0), which will then get shifted through the registers
+ * used to test the keys one-by-one.
+ */
+static void scan_setup_first_col( void )
+{
+    // PB3 | serial data = output, low
+    //
+    // Setup time is not specified in the data sheet, but with a max clock of 30 MHz
+    // (cycle time of 33 ns) and a single nop is about 150 us, this should have enough margin.
+    DDRB |= (1<<PB3);
+    PORTB &= ~(1<<PB3);
+    asm("nop");
+    asm("nop");
+
+    // Clock in the first bit
+    SERIAL_DATA_CLOCK_PULSE();
+
+    // PB3 = high
+    // This returns to high faster than flipping straight to input with a weak pull-up
+    // so we can get to scanning much sooner.
+    PORTB |= (1<<PB3);
+
+    // PB3 = input (and pull-up enabled by previous line)
+    // This prepares the line for reading the key state on the left PCB
+    DDRB &= ~(1<<PB3);
+}
+
+/*
+ * Clock in a 1 bit, which will continue to shift the keypress test bit through the registers.
+ */
+static void scan_setup_next_col( void )
+{
+    // PB3 | serial data = output, high
+    DDRB |= (1<<PB3);
+
+    SERIAL_DATA_CLOCK_PULSE();
+
+    // PB3 = input (and pull-up enabled previously)
+    DDRB &= ~(1<<PB3);
+}
