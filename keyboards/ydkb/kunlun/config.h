@@ -10,9 +10,6 @@
 #define MOUSEKEY_MAX_SPEED      7
 #define MOUSEKEY_WHEEL_DELAY    0
 
-#define TAPPING_TOGGLE  1
-
-#define TAPPING_TERM    200
 
 /* key combination for command */
 #define IS_COMMAND() ( \

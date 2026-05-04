@@ -2,6 +2,13 @@
     "keyboard_name": "Kunlun",
     "manufacturer": "YDKB_KBDFans",
     "maintainer": "ydkb",
+    "bootloader_instructions ": "Hold ESC while plugging in the keyboard. Stock bootloader is LUFA-MS. Drag and drop kunlun.bin.",
+    "processor": "atmega32u4",
+    "bootloader": "lufa-ms",
+    "build": {
+        "lto": true,
+        "firmware_format": "bin"
+    },
     "features": {
         "unicode": true,
         "bootmagic": true,
@@ -9,6 +16,16 @@
         "extrakey": true,
         "nkro": true,
         "rgblight": true
+    },
+    "qmk": {
+        "locking": {
+            "enabled": false,
+            "resync": false
+        }
+    },
+    "tapping": {
+        "tapping_term": 200,
+        "tapping_toggle": 1
     },
     "rgblight": {
         "led_count": 3,
@@ -40,17 +57,6 @@
         "vid": "0x9D5B",
         "pid": "0x2263",
         "device_version": "1.0.0"
-    },
-    "qmk": {
-        "locking": {
-            "enabled": false,
-            "resync": false
-        }
-    },
-    "processor": "atmega32u4",
-    "bootloader": "lufa-ms",
-    "build": {
-        "lto": true
     },
     "dynamic_keymap": {
         "layer_count": 4
