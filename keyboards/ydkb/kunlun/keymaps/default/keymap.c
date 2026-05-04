@@ -9,3 +9,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	KC_BSPC, KC_7,   KC_8,   KC_9,    KC_0,    KC_MINS, KC_EQL, KC_GRV 
 	),
 };
+
+const rgblight_segment_t PROGMEM rgblight_caps_lock_layer[] = RGBLIGHT_LAYER_SEGMENTS(
+    {0, 3, HSV_PURPLE}
+);
+
+const rgblight_segment_t* const PROGMEM kunlun_rgblight_layers[] = RGBLIGHT_LAYERS_LIST(
+	rgblight_caps_lock_layer
+);
+
+void keyboard_post_init_user( void )
+{
+	// Enable the LED layers.
+	rgblight_layers = kunlun_rgblight_layers;
+}
+
+bool led_update_user( led_t led_state )
+{
+    rgblight_set_layer_state( 0, led_state.caps_lock );
+    return true;
+}
