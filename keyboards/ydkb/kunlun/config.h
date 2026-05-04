@@ -4,11 +4,6 @@
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 16
 
-/* key combination for command */
-#define IS_COMMAND() ( \
-    get_mods() == (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT)) \
-)
-
 /* fix space cadet rollover issue */
 #define DISABLE_SPACE_CADET_ROLLOVER
 
