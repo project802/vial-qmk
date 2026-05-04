@@ -17,3 +17,10 @@
 #pragma once
 
 #define VIAL_KEYBOARD_UID {0x2E, 0xE6, 0x0E, 0x23, 0x34, 0xEF, 0x99, 0x37}
+
+/*
+ * Unlock combo is ESC + Enter
+ */
+#define VIAL_UNLOCK_COMBO_ROWS { 0, 2 }
+
+#define VIAL_UNLOCK_COMBO_COLS { 0, 8 }
