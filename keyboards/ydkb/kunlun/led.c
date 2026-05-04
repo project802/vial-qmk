@@ -19,29 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "stdint.h"
 #include "quantum.h"
 #include "led.h"
-#include "rgblight.h"
 
-bool led3_indicator_on = 0;
-struct cRGB led3_indicator_color;
+// [TODO] port this
 
 void led_set_user(led_t led_state)
 {
     if (led_state.caps_lock) {
-        led3_indicator_on = 1;
-        led3_indicator_color.r = 255;
-        led3_indicator_color.g = 0;
-        led3_indicator_color.b = 255;
+        //led3_indicator_color.r = 255;
+        //led3_indicator_color.g = 0;
+        //led3_indicator_color.b = 255;
     } else {
-        led3_indicator_on = 0;
-    }
-    rgblight_set();
-}
 
-// rgblight control
-// RGB_TOGGLE: 0x5cc2, Mode+:5cc3,Mode-:5cc4 ... VAL-:5cca
-// USER00 - USER15, 0x5F80 - 0x5F8F
-void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (keycode >= 0x5f80 && keycode <= 0x5f88) {
-        if (record->event.pressed) rgblight_action(keycode - 0x5f80);
     }
 }

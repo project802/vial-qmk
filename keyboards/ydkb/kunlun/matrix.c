@@ -5,7 +5,6 @@
 #include "util.h"
 #include "timer.h"
 #include "matrix.h"
-#include "rgblight.h"
 #include "debounce.h"
 
 /***************
@@ -46,7 +45,6 @@ __attribute__((weak)) void matrix_init_kb(void) {
 
 __attribute__((weak)) void matrix_scan_kb(void) {
     matrix_scan_user();
-    hook_keyboard_loop();
 }
 
 __attribute__((weak)) void matrix_init_user(void) {}
@@ -80,8 +78,6 @@ void matrix_init(void)
     DDRB  |=  (1<<PB3 | 1<<PB1);
     DDRB  &= ~(1<<PB2);
     PORTB |=  (1<<PB3 | 1<<PB2 | 1<<PB1);
-
-    rgblight_init();
 
     debounce_init( MATRIX_ROWS );
 }

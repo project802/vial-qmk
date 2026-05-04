@@ -7,7 +7,26 @@
         "bootmagic": true,
         "mousekey": true,
         "extrakey": true,
-        "nkro": true
+        "nkro": true,
+        "rgblight": true
+    },
+    "rgblight": {
+        "led_count": 3,
+        "animations": {
+            "rainbow_mood": true,
+            "rainbow_swirl": true,
+            "breathing": true,
+            "snake": true,
+            "knight": true,
+            "christmas": true,
+            "static_gradient": true,
+            "rgb_test": true,
+            "alternating": true,
+            "twinkle": true
+        }
+    },
+    "ws2812": {
+        "pin": "D5"
     },
     "usb": {
         "vid": "0x9D5B",

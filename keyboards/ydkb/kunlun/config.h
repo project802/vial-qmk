@@ -19,11 +19,6 @@
     get_mods() == (MOD_BIT(KC_LSFT) | MOD_BIT(KC_RSFT)) \
 )
 
-#define ws2812_PORTREG  PORTD
-#define ws2812_DDRREG   DDRD
-#define ws2812_pin PD5
-#define RGBLED_NUM 3     // Number of LEDs
-
 /* fix space cadet rollover issue */
 #define DISABLE_SPACE_CADET_ROLLOVER
 
