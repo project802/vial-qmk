@@ -17,7 +17,7 @@
         "nkro": true,
         "rgblight": true,
         "combos": true,
-        "tap_dance": true
+        "tapdance": true
     },
     "bootmagic": {
         "enabled": true,
