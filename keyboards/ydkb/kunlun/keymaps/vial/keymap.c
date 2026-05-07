@@ -1,3 +1,7 @@
+// Copyright 2026 Chris Vincent (@project802)
+// SPDX-License-Identifier: GPL-3.0
+// Based on the original code by YDKB (unspecified license, but presumably GPL-2.0 or later)
+
 #include QMK_KEYBOARD_H
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
