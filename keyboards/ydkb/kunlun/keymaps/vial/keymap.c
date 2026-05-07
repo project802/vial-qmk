@@ -14,18 +14,43 @@ const rgblight_segment_t PROGMEM rgblight_caps_lock_layer[] = RGBLIGHT_LAYER_SEG
     {0, 3, HSV_PURPLE}
 );
 
+const rgblight_segment_t PROGMEM rgblight_layer1_layer[] = RGBLIGHT_LAYER_SEGMENTS(
+    {0, 3, HSV_BLUE}
+);
+
+const rgblight_segment_t PROGMEM rgblight_layer2_layer[] = RGBLIGHT_LAYER_SEGMENTS(
+    {0, 3, HSV_RED}
+);
+
+const rgblight_segment_t PROGMEM rgblight_layer3_layer[] = RGBLIGHT_LAYER_SEGMENTS(
+    {0, 3, HSV_GREEN}
+);
+
+// Layer priority is last to first
 const rgblight_segment_t* const PROGMEM kunlun_rgblight_layers[] = RGBLIGHT_LAYERS_LIST(
+	rgblight_layer1_layer,
+	rgblight_layer2_layer,
+	rgblight_layer3_layer,
 	rgblight_caps_lock_layer
 );
 
 void keyboard_post_init_user( void )
 {
-	// Enable the LED layers.
 	rgblight_layers = kunlun_rgblight_layers;
 }
 
 bool led_update_user( led_t led_state )
 {
-    rgblight_set_layer_state( 0, led_state.caps_lock );
+	// First argument is the index of kunlun_rgblight_layers[]
+    rgblight_set_layer_state( 3, led_state.caps_lock );
     return true;
+}
+
+layer_state_t layer_state_set_user( layer_state_t state )
+{
+	// First argument is the index of kunlun_rgblight_layers[]
+	rgblight_set_layer_state( 0, layer_state_cmp(state, 1) );
+    rgblight_set_layer_state( 1, layer_state_cmp(state, 2) );
+    rgblight_set_layer_state( 2, layer_state_cmp(state, 3) );
+    return state;
 }

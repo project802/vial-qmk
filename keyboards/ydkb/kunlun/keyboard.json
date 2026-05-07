@@ -52,7 +52,7 @@
         },
         "layers": {
             "enabled": true,
-            "max": 1
+            "max": 4
         },
         "default": {
             "animation": "rainbow_mood",
