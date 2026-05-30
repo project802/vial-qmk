@@ -20,8 +20,7 @@
         "tapdance": true
     },
     "bootmagic": {
-        "enabled": true,
-        "matrix": [0, 0]
+        "enabled": true
     },
     "qmk": {
         "locking": {
@@ -56,11 +55,9 @@
         },
         "default": {
             "animation": "rainbow_mood",
-            "speed": 3,
-            "on": true
+            "speed": 3
         },
         "saturation_steps": 8,
-        "hue_steps": 8,
         "brightness_steps": 8,
         "sleep": true
     },
