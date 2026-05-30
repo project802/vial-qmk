@@ -47,34 +47,35 @@ static matrix_row_t matrix[MATRIX_ROWS] = {0};
  * See https://docs.qmk.fm/custom_matrix#full-replacement
  */
 
-__attribute__((weak)) void matrix_init_kb(void) {
+__attribute__((weak)) void matrix_init_kb( void ) {
     matrix_init_user(); 
 }
 
-__attribute__((weak)) void matrix_scan_kb(void) {
+__attribute__((weak)) void matrix_scan_kb( void ) {
     matrix_scan_user();
 }
 
-__attribute__((weak)) void matrix_init_user(void) {}
+__attribute__((weak)) void matrix_init_user( void ) {}
 
-__attribute__((weak)) void matrix_scan_user(void) {}
+__attribute__((weak)) void matrix_scan_user( void ) {}
 
-matrix_row_t matrix_get_row(uint8_t row)
+matrix_row_t matrix_get_row( uint8_t row )
 {
     return matrix[row];
 }
 
-void matrix_print(void)
+void matrix_print( void )
 {
-    print("\nr/c 0123456789ABCDEF\n");
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-        print_hex8(row); print(": ");
-        print_bin_reverse16(matrix_get_row(row));
-        print("\n");
+    print( "\nr/c 0123456789ABCDEF\n" );
+    for( uint8_t row = 0; row < MATRIX_ROWS; row++ ) {
+        print_hex8( row );
+        print( ": " );
+        print_bin_reverse16( matrix_get_row(row) );
+        print( "\n" );
     }
 }
 
-void matrix_init(void)
+void matrix_init( void )
 {
     gpio_set_pin_output( GPIO_MATRIX_DATA_LINPUT );
     gpio_set_pin_output( GPIO_MATRIX_CLOCK );
@@ -103,7 +104,7 @@ void matrix_init(void)
  *   - Odd logical columns read the right PCB (PA2 low = pressed) and pulse
  *     the shift clock for next hardware row
  */
-uint8_t matrix_scan(void)
+uint8_t matrix_scan( void )
 {
     static matrix_row_t matrix_raw[MATRIX_ROWS] = {0};
     static uint16_t     matrix_scan_timestamp   = 0;
@@ -112,19 +113,19 @@ uint8_t matrix_scan(void)
     uint16_t time_check = timer_read();
 
     // Avoid scanning the matrix faster than 1 kHz to give time for other tasks
-    if (matrix_scan_timestamp == time_check) return 0;
+    if( matrix_scan_timestamp == time_check ) return 0;
     matrix_scan_timestamp = time_check;
 
     scan_setup_first_col();
 
-    for (uint8_t row=0; row<MATRIX_ROWS; row++)
+    for( uint8_t row=0; row < MATRIX_ROWS; row++ )
     {
         matrix_row_t row_raw = 0;
 
-        for (uint8_t col=0; col<MATRIX_COLS; col++)
+        for( uint8_t col=0; col < MATRIX_COLS; col++ )
         {
             uint8_t real_col = col/2;
-            if (col & 1) real_col += 8;
+            if( col & 1 ) real_col += 8;
 
             kunlun_pcb_t pcb = real_col < 8 ? KUNLUN_PCB_LEFT : KUNLUN_PCB_RIGHT;
             if( scan_is_key_pressed(pcb) )
@@ -132,7 +133,7 @@ uint8_t matrix_scan(void)
                 row_raw |= (1 << real_col);
             }
 
-            if (real_col >= 8)
+            if( real_col >= 8 )
             {
                 scan_setup_next_col();
             }
@@ -170,7 +171,7 @@ inline bool matrix_is_on( uint8_t row, uint8_t col )
  * right PCB input (PB2) low.
  */
 static bool scan_is_key_pressed( kunlun_pcb_t pcb ) {
-    if (pcb == KUNLUN_PCB_LEFT)
+    if( pcb == KUNLUN_PCB_LEFT )
     {
         return gpio_read_pin( GPIO_MATRIX_DATA_LINPUT ) == 0;
     } 
