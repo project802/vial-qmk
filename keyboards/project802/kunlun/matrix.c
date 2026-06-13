@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "matrix.h"
 #include "debounce.h"
+#include "wait.h"
 
 /***************
  * Macros
@@ -136,6 +137,14 @@ uint8_t matrix_scan( void )
             if( real_col >= 8 )
             {
                 scan_setup_next_col();
+
+                // This delay is required to ensure that the right keyboard
+                // input line has enough time to rise due to the large
+                // capacitance on the line. Without this, the right PCB will
+                // report phantom key presses. This matches the behavior of
+                // the original firmware, which doesn't have this delay but
+                // naturally runs much slower.
+                wait_us(15);
             }
         }
 
