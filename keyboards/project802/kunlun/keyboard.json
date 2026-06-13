@@ -64,7 +64,7 @@
     },
     "usb": {
         "vid": "0x9D5B",
-        "pid": "0x2263",
+        "pid": "0x2264",
         "device_version": "1.0.0"
     },
     "dynamic_keymap": {
