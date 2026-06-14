@@ -64,6 +64,9 @@
     },
     "audio": {
         "driver": "pwm_software",
+        "default": {
+            "clicky": false
+        },
         "pins": ["A8"]
     },
     "usb": {
