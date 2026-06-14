@@ -10,3 +10,10 @@
 /* key matrix size */
 #define MATRIX_ROWS 5
 #define MATRIX_COLS 16
+
+#define AUDIO_CLICKY
+#define AUDIO_PIN A8
+#define AUDIO_PWM_PAL_MODE 1
+#define AUDIO_PWM_DRIVER PWMD1
+#define AUDIO_PWM_CHANNEL 1
+#define AUDIO_STATE_TIMER GPTD3

@@ -62,6 +62,10 @@
     "ws2812": {
         "pin": "A3"
     },
+    "audio": {
+        "driver": "pwm_software",
+        "pins": ["A8"]
+    },
     "usb": {
         "vid": "0x9D5B",
         "pid": "0x2264",
