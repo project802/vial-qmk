@@ -1,0 +1,15 @@
+{
+    "name": "CW Interface",
+    "vendorId": "0x9D5B",
+    "productId": "0xC802",
+    "lighting": "none",
+    "matrix": {
+        "rows": 1,
+        "cols": 2
+    },
+    "layouts": {
+        "keymap": [
+            ["0,0", "0,1"]
+        ]
+    }
+}

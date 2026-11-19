@@ -1,0 +1,25 @@
+{
+    "keyboard_name": "CW Interface",
+    "manufacturer": "project802",
+    "maintainer": "project802",
+    "development_board": "proton_c",
+    "usb": {
+        "vid": "0x9D5B",
+        "pid": "0xC802",
+        "device_version": "1.0.0"
+    },
+    "features": {
+        "bootmagic": false,
+        "extrakey": false,
+        "mousekey": false,
+        "nkro": false
+    },
+    "layouts": {
+        "LAYOUT": {
+            "layout": [
+                {"matrix": [0, 0], "label": "Left Control", "x": 0, "y": 0},
+                {"matrix": [0, 1], "label": "Right Control", "x": 1, "y": 0}
+            ]
+        }
+    }
+}
