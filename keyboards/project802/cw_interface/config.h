@@ -10,7 +10,6 @@
 
 #define CW_RIGHT_PIN B6
 #define CW_LEFT_PIN B7
-#define DEBOUNCE 30
 
 #ifdef AUDIO_ENABLE
 #    define AUDIO_PIN A5
